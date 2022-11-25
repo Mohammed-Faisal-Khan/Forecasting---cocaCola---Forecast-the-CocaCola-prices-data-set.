@@ -9,6 +9,69 @@
 
 # In[1]:
 
+import cv2
+
+import os
+
+import numpy as np
+
+import pickle
+
+import tensorflow as tf
+
+from tensorflow.keras import layers
+
+from tensorflow.keras import models,utils
+
+import pandas as pd
+
+from tensorflow.keras.models import load_model
+
+from tensorflow.keras.preprocessing.image import load_img,img_to_array
+
+from tensorflow.python.keras import utils
+
+current_path = os.getcwd()
+
+# getting the current path
+
+dog_breeds_category_path = os.path.join(current_path, 'static\dog_breeds_category.pickle')
+
+# loading class_to_num_category
+
+predictor_model = load_model(r'static\dogbreed.h5')
+
+with open(dog_breeds_category_path, 'rb') as handle:
+
+    dog_breeds = pickle.load(handle)
+
+# loading the feature extractor model
+
+feature_extractor = load_model(r'static\feature_extractor.h5')
+
+def predictor(img_path): # here image is file name 
+
+    img = load_img(img_path, target_size=(331,331))
+
+    img = img_to_array(img)
+
+    img = np.expand_dims(img,axis = 0)
+
+    features = feature_extractor.predict(img)
+
+    prediction = predictor_model.predict(features)*100
+
+    prediction = pd.DataFrame(np.round(prediction,1),columns = dog_breeds).transpose()
+
+    prediction.columns = ['values']
+
+    prediction  = prediction.nlargest(5, 'values')
+
+    prediction = prediction.reset_index()
+
+    prediction.columns = ['name', 'values']
+
+    return(prediction)
 
 import pandas as pd
 import numpy as np
